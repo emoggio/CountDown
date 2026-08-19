@@ -189,47 +189,121 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      border: 1px solid rgba(250, 246, 239, 0.15);
-      background: rgba(20, 14, 10, 0.45);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(250, 246, 239, 0.16);
+      background: rgba(20, 14, 10, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       transition: transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      padding: 0;
     }
 
     .audio-toggle:hover {
       transform: scale(1.06);
-      border-color: rgba(212, 162, 76, 0.45);
+      border-color: rgba(212, 162, 76, 0.5);
     }
 
     .audio-toggle:active {
       transform: scale(0.95);
     }
 
-    .audio-toggle svg {
-      width: 32px;
-      height: 32px;
-      animation: spin 3s linear infinite;
-      animation-play-state: paused;
-      opacity: 0.5;
-      transition: opacity 0.25s ease, filter 0.25s ease;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-    }
-
     .audio-toggle.playing {
-      border-color: rgba(212, 162, 76, 0.35);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(212, 162, 76, 0.25);
+      border-color: rgba(212, 162, 76, 0.45);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(212, 162, 76, 0.25);
     }
 
-    .audio-toggle.playing svg {
+    /* The Vinyl Record */
+    .vinyl-disc {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: 
+        conic-gradient(
+          from 20deg,
+          rgba(255, 255, 255, 0.28) 0deg,
+          rgba(255, 255, 255, 0.03) 40deg,
+          rgba(0, 0, 0, 0.35) 90deg,
+          rgba(255, 255, 255, 0.28) 180deg,
+          rgba(255, 255, 255, 0.03) 220deg,
+          rgba(0, 0, 0, 0.35) 270deg,
+          rgba(255, 255, 255, 0.28) 360deg
+        ),
+        #14100d;
+      box-shadow: 
+        inset 0 0 0 1px rgba(250, 246, 239, 0.14),
+        0 2px 8px rgba(0, 0, 0, 0.5);
+      animation: spin 2.8s linear infinite;
+      animation-play-state: paused;
+      opacity: 0.55;
+      transition: opacity 0.25s ease, filter 0.25s ease;
+    }
+
+    .audio-toggle.playing .vinyl-disc {
       animation-play-state: running;
       opacity: 1;
-      filter: drop-shadow(0 0 6px rgba(212, 162, 76, 0.35));
+      filter: drop-shadow(0 0 6px rgba(212, 162, 76, 0.3));
+    }
+
+    /* Concentric Groove Rings */
+    .vinyl-groove {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .vinyl-groove.groove-1 {
+      width: 25px;
+      height: 25px;
+      border: 1px solid rgba(250, 246, 239, 0.1);
+    }
+
+    .vinyl-groove.groove-2 {
+      width: 19px;
+      height: 19px;
+      border: 0.8px dashed rgba(250, 246, 239, 0.15);
+    }
+
+    /* Center Label */
+    .vinyl-label {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--gold);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 0.5px rgba(20, 14, 10, 0.4);
+      z-index: 1;
+    }
+
+    .vinyl-label-half {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: var(--chili);
+    }
+
+    .vinyl-spindle {
+      width: 3.5px;
+      height: 3.5px;
+      border-radius: 50%;
+      background: #14100d;
+      box-shadow: 0 0 0 0.6px rgba(250, 246, 239, 0.7);
+      position: relative;
+      z-index: 2;
     }
 
     @keyframes spin {
@@ -243,7 +317,7 @@
     }
 
     @media (prefers-reduced-motion:reduce) {
-      .audio-toggle svg {
+      .vinyl-disc {
         animation: none;
       }
     }
@@ -255,64 +329,14 @@
   <div id="bg"></div>
 
   <button class="audio-toggle playing" id="audioToggle" aria-label="Pause music" aria-pressed="true">
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- Vinyl light sheen reflection 1 -->
-        <linearGradient id="sheen1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" />
-          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.06" />
-          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-        </linearGradient>
-        <!-- Vinyl light sheen reflection 2 -->
-        <linearGradient id="sheen2" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
-          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.04" />
-          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-        </linearGradient>
-        <!-- Label Gradient -->
-        <linearGradient id="labelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#e5b358" />
-          <stop offset="100%" stop-color="#ba822f" />
-        </linearGradient>
-      </defs>
-
-      <!-- Vinyl Outer Body -->
-      <circle cx="24" cy="24" r="23" fill="#120e0c" stroke="rgba(250,246,239,0.2)" stroke-width="0.75" />
-
-      <!-- Grooves -->
-      <circle cx="24" cy="24" r="20.5" stroke="rgba(250,246,239,0.12)" stroke-width="0.6" />
-      <circle cx="24" cy="24" r="18" stroke="rgba(250,246,239,0.16)" stroke-width="0.6" stroke-dasharray="14 3 8 2" />
-      <circle cx="24" cy="24" r="15.5" stroke="rgba(250,246,239,0.12)" stroke-width="0.6" />
-      <circle cx="24" cy="24" r="13" stroke="rgba(250,246,239,0.18)" stroke-width="0.6" stroke-dasharray="10 4 18 3" />
-      <circle cx="24" cy="24" r="10.5" stroke="rgba(250,246,239,0.14)" stroke-width="0.6" />
-
-      <!-- Opposing Specular Light Reflection Cones (Sheen that rotates with the vinyl) -->
-      <path d="M 24 24 L 9 3 A 23 23 0 0 1 21 1 Z" fill="url(#sheen1)" />
-      <path d="M 24 24 L 39 45 A 23 23 0 0 1 27 47 Z" fill="url(#sheen1)" />
-      <path d="M 24 24 L 45 9 A 23 23 0 0 1 47 21 Z" fill="url(#sheen2)" />
-      <path d="M 24 24 L 3 39 A 23 23 0 0 1 1 27 Z" fill="url(#sheen2)" />
-
-      <!-- Run-out Groove Spiral -->
-      <path d="M 24 10.5 C 28 10.5 31.5 13.5 31.5 17.5 C 31.5 22 27.5 25.5 23 25.5 C 19 25.5 16 22.5 16.5 19 C 17 16 19.5 14 22 14" fill="none" stroke="rgba(250,246,239,0.22)" stroke-width="0.5" />
-
-      <!-- Center Label -->
-      <circle cx="24" cy="24" r="8" fill="url(#labelGrad)" stroke="#8e5d16" stroke-width="0.5" />
-      <!-- Label Two-Tone Contrast Arc -->
-      <path d="M 16 24 A 8 8 0 0 1 32 24 Z" fill="#c4933a" opacity="0.9" />
-      <circle cx="24" cy="24" r="7" stroke="rgba(18,14,12,0.25)" stroke-width="0.5" stroke-dasharray="1.5 1.5" />
-
-      <!-- Distinctive Vintage Label Markings (Rotates clearly) -->
-      <circle cx="24" cy="19.5" r="1.1" fill="#14100c" />
-      <rect x="20.5" y="21.8" width="7" height="1" rx="0.5" fill="#14100c" />
-      <rect x="22" y="26.2" width="4" height="0.8" rx="0.4" fill="#14100c" />
-
-      <!-- Strobe / Calibration Tick Marks on Left and Right of Label -->
-      <line x1="17.5" y1="24" x2="19" y2="24" stroke="#14100c" stroke-width="0.8" stroke-linecap="round" />
-      <line x1="29" y1="24" x2="30.5" y2="24" stroke="#14100c" stroke-width="0.8" stroke-linecap="round" />
-
-      <!-- Center Spindle Hole -->
-      <circle cx="24" cy="24" r="2.2" fill="#14100c" stroke="rgba(250,246,239,0.7)" stroke-width="0.5" />
-    </svg>
+    <div class="vinyl-disc">
+      <div class="vinyl-groove groove-1"></div>
+      <div class="vinyl-groove groove-2"></div>
+      <div class="vinyl-label">
+        <div class="vinyl-label-half"></div>
+        <div class="vinyl-spindle"></div>
+      </div>
+    </div>
   </button>
 
   <audio id="audioPlayer" src="song.mp3" autoplay loop playsinline preload="auto"></audio>
