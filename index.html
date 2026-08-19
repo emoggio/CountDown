@@ -186,32 +186,50 @@
       top: max(18px, env(safe-area-inset-top));
       right: max(18px, env(safe-area-inset-right));
       z-index: 2;
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      border: none;
-      background: rgba(20, 14, 10, 0.38);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(250, 246, 239, 0.15);
+      background: rgba(20, 14, 10, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .audio-toggle:hover {
+      transform: scale(1.06);
+      border-color: rgba(212, 162, 76, 0.45);
+    }
+
+    .audio-toggle:active {
+      transform: scale(0.95);
     }
 
     .audio-toggle svg {
-      width: 26px;
-      height: 26px;
-      animation: spin 3.2s linear infinite;
+      width: 32px;
+      height: 32px;
+      animation: spin 3s linear infinite;
       animation-play-state: paused;
-      opacity: 0.55;
-      transition: opacity 0.25s ease;
+      opacity: 0.5;
+      transition: opacity 0.25s ease, filter 0.25s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    }
+
+    .audio-toggle.playing {
+      border-color: rgba(212, 162, 76, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(212, 162, 76, 0.25);
     }
 
     .audio-toggle.playing svg {
       animation-play-state: running;
       opacity: 1;
+      filter: drop-shadow(0 0 6px rgba(212, 162, 76, 0.35));
     }
 
     @keyframes spin {
@@ -229,49 +247,6 @@
         animation: none;
       }
     }
-
-    /* ---------- Autoplay nudge ---------- */
-    #musicNudge {
-      position: absolute;
-      top: max(22px, env(safe-area-inset-top));
-      right: max(72px, calc(env(safe-area-inset-right) + 54px));
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--paper-dim);
-      background: rgba(20, 14, 10, 0.55);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      padding: 6px 10px;
-      border-radius: 20px;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      animation: nudgeFade 3s ease 0.8s forwards;
-      animation-play-state: paused;
-      z-index: 2;
-    }
-
-    @keyframes nudgeFade {
-      0% {
-        opacity: 0;
-        transform: translateX(6px);
-      }
-
-      20% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
-      70% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
   </style>
 </head>
 
@@ -279,19 +254,68 @@
 
   <div id="bg"></div>
 
-  <div id="musicNudge">♪ tap to play</div>
   <button class="audio-toggle" id="audioToggle" aria-label="Play music" aria-pressed="false">
-    <svg viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="24" r="22" fill="#15100c" />
-      <circle cx="24" cy="24" r="22" stroke="rgba(250,246,239,0.25)" stroke-width="1" />
-      <circle cx="24" cy="24" r="17" stroke="rgba(250,246,239,0.18)" stroke-width="1" />
-      <circle cx="24" cy="24" r="12" stroke="rgba(250,246,239,0.18)" stroke-width="1" />
-      <circle cx="24" cy="24" r="8" fill="#d4a24c" />
-      <circle cx="24" cy="24" r="2.2" fill="#15100c" />
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Vinyl light sheen reflection 1 -->
+        <linearGradient id="sheen1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" />
+          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.06" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+        <!-- Vinyl light sheen reflection 2 -->
+        <linearGradient id="sheen2" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
+          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.04" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+        <!-- Label Gradient -->
+        <linearGradient id="labelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e5b358" />
+          <stop offset="100%" stop-color="#ba822f" />
+        </linearGradient>
+      </defs>
+
+      <!-- Vinyl Outer Body -->
+      <circle cx="24" cy="24" r="23" fill="#120e0c" stroke="rgba(250,246,239,0.2)" stroke-width="0.75" />
+
+      <!-- Grooves -->
+      <circle cx="24" cy="24" r="20.5" stroke="rgba(250,246,239,0.12)" stroke-width="0.6" />
+      <circle cx="24" cy="24" r="18" stroke="rgba(250,246,239,0.16)" stroke-width="0.6" stroke-dasharray="14 3 8 2" />
+      <circle cx="24" cy="24" r="15.5" stroke="rgba(250,246,239,0.12)" stroke-width="0.6" />
+      <circle cx="24" cy="24" r="13" stroke="rgba(250,246,239,0.18)" stroke-width="0.6" stroke-dasharray="10 4 18 3" />
+      <circle cx="24" cy="24" r="10.5" stroke="rgba(250,246,239,0.14)" stroke-width="0.6" />
+
+      <!-- Opposing Specular Light Reflection Cones (Sheen that rotates with the vinyl) -->
+      <path d="M 24 24 L 9 3 A 23 23 0 0 1 21 1 Z" fill="url(#sheen1)" />
+      <path d="M 24 24 L 39 45 A 23 23 0 0 1 27 47 Z" fill="url(#sheen1)" />
+      <path d="M 24 24 L 45 9 A 23 23 0 0 1 47 21 Z" fill="url(#sheen2)" />
+      <path d="M 24 24 L 3 39 A 23 23 0 0 1 1 27 Z" fill="url(#sheen2)" />
+
+      <!-- Run-out Groove Spiral -->
+      <path d="M 24 10.5 C 28 10.5 31.5 13.5 31.5 17.5 C 31.5 22 27.5 25.5 23 25.5 C 19 25.5 16 22.5 16.5 19 C 17 16 19.5 14 22 14" fill="none" stroke="rgba(250,246,239,0.22)" stroke-width="0.5" />
+
+      <!-- Center Label -->
+      <circle cx="24" cy="24" r="8" fill="url(#labelGrad)" stroke="#8e5d16" stroke-width="0.5" />
+      <!-- Label Two-Tone Contrast Arc -->
+      <path d="M 16 24 A 8 8 0 0 1 32 24 Z" fill="#c4933a" opacity="0.9" />
+      <circle cx="24" cy="24" r="7" stroke="rgba(18,14,12,0.25)" stroke-width="0.5" stroke-dasharray="1.5 1.5" />
+
+      <!-- Distinctive Vintage Label Markings (Rotates clearly) -->
+      <circle cx="24" cy="19.5" r="1.1" fill="#14100c" />
+      <rect x="20.5" y="21.8" width="7" height="1" rx="0.5" fill="#14100c" />
+      <rect x="22" y="26.2" width="4" height="0.8" rx="0.4" fill="#14100c" />
+
+      <!-- Strobe / Calibration Tick Marks on Left and Right of Label -->
+      <line x1="17.5" y1="24" x2="19" y2="24" stroke="#14100c" stroke-width="0.8" stroke-linecap="round" />
+      <line x1="29" y1="24" x2="30.5" y2="24" stroke="#14100c" stroke-width="0.8" stroke-linecap="round" />
+
+      <!-- Center Spindle Hole -->
+      <circle cx="24" cy="24" r="2.2" fill="#14100c" stroke="rgba(250,246,239,0.7)" stroke-width="0.5" />
     </svg>
   </button>
 
-  <audio id="audioPlayer" loop playsinline>
+  <audio id="audioPlayer" autoplay loop playsinline>
     <source src="song.mp3" type="audio/mpeg"> <!-- EDIT: path/URL to your song (also set in CONFIG below) -->
   </audio>
 
@@ -388,15 +412,12 @@
     tick();
     setInterval(tick, 1000);
 
-    // Vinyl play/pause toggle — default: ON (autoplay attempted)
+    // Vinyl play/pause toggle — default: ON (autoplay enabled)
     const audio = document.getElementById('audioPlayer');
     const toggleBtn = document.getElementById('audioToggle');
-    const nudgeEl = document.getElementById('musicNudge');
-    let playing = false;
 
-    function setPlaying(on) {
-      playing = on;
-      if (on) {
+    function updatePlayState() {
+      if (!audio.paused) {
         toggleBtn.classList.add('playing');
         toggleBtn.setAttribute('aria-pressed', 'true');
         toggleBtn.setAttribute('aria-label', 'Pause music');
@@ -407,35 +428,45 @@
       }
     }
 
-    // Attempt autoplay on load
-    audio.muted = false;
-    audio.play().then(() => {
-      // Autoplay succeeded
-      setPlaying(true);
-    }).catch(() => {
-      // Autoplay blocked — show nudge, wait for first interaction
-      setPlaying(false);
-      if (nudgeEl) nudgeEl.style.animationPlayState = 'running';
+    audio.addEventListener('play', updatePlayState);
+    audio.addEventListener('pause', updatePlayState);
+    audio.addEventListener('playing', updatePlayState);
 
-      function startOnInteraction() {
-        audio.play().then(() => {
-          setPlaying(true);
-          document.removeEventListener('click', startOnInteraction);
-          document.removeEventListener('keydown', startOnInteraction);
-        }).catch(() => { });
+    // Autoplay attempt on load
+    function tryAutoplay() {
+      audio.muted = false;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          updatePlayState();
+        }).catch(() => {
+          // If browser policy blocks unprompted autoplay, start seamlessly on first user interaction anywhere
+          const unlockAudio = () => {
+            audio.play().then(() => {
+              updatePlayState();
+            }).catch(() => { });
+            window.removeEventListener('pointerdown', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+          };
+          window.addEventListener('pointerdown', unlockAudio, { once: true });
+          window.addEventListener('touchstart', unlockAudio, { once: true });
+          window.addEventListener('click', unlockAudio, { once: true });
+          window.addEventListener('keydown', unlockAudio, { once: true });
+        });
       }
-      document.addEventListener('click', startOnInteraction);
-      document.addEventListener('keydown', startOnInteraction);
-    });
+    }
+
+    tryAutoplay();
+    document.addEventListener('DOMContentLoaded', tryAutoplay);
 
     toggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // prevent double-firing with the interaction listener above
-      if (!playing) {
+      e.stopPropagation();
+      if (audio.paused) {
         audio.play().catch(() => { });
-        setPlaying(true);
       } else {
         audio.pause();
-        setPlaying(false);
       }
     });
   </script>
