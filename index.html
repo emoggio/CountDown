@@ -254,7 +254,7 @@
 
   <div id="bg"></div>
 
-  <button class="audio-toggle" id="audioToggle" aria-label="Play music" aria-pressed="false">
+  <button class="audio-toggle playing" id="audioToggle" aria-label="Pause music" aria-pressed="true">
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <!-- Vinyl light sheen reflection 1 -->
@@ -315,9 +315,7 @@
     </svg>
   </button>
 
-  <audio id="audioPlayer" autoplay loop playsinline>
-    <source src="song.mp3" type="audio/mpeg"> <!-- EDIT: path/URL to your song (also set in CONFIG below) -->
-  </audio>
+  <audio id="audioPlayer" src="song.mp3" autoplay loop playsinline preload="auto"></audio>
 
   <div class="stage">
     <div class="content">
@@ -365,12 +363,9 @@
       `linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 22%),
      linear-gradient(0deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.15) 46%, rgba(0,0,0,0.05) 65%),
      url('${CONFIG.BACKGROUND_IMAGE}')`;
-    const audioMimeTypes = { mp3: 'audio/mpeg', mp4: 'video/mp4', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg' };
-    const audioExt = CONFIG.MUSIC_SRC.split('.').pop().toLowerCase();
-    const audioSourceEl = document.querySelector('#audioPlayer source');
-    audioSourceEl.src = CONFIG.MUSIC_SRC;
-    audioSourceEl.type = audioMimeTypes[audioExt] || '';
-    document.getElementById('audioPlayer').load();
+
+    const audio = document.getElementById('audioPlayer');
+    audio.src = CONFIG.MUSIC_SRC;
     document.getElementById('nicknameEl').textContent = CONFIG.NICKNAME;
 
     // Countdown
@@ -412,12 +407,12 @@
     tick();
     setInterval(tick, 1000);
 
-    // Vinyl play/pause toggle — default: ON (autoplay enabled)
-    const audio = document.getElementById('audioPlayer');
+    // Vinyl play/pause toggle — default: ON (spinning & playing from start)
     const toggleBtn = document.getElementById('audioToggle');
+    let userPaused = false;
 
-    function updatePlayState() {
-      if (!audio.paused) {
+    function setVisualPlaying(isPlaying) {
+      if (isPlaying) {
         toggleBtn.classList.add('playing');
         toggleBtn.setAttribute('aria-pressed', 'true');
         toggleBtn.setAttribute('aria-label', 'Pause music');
@@ -428,46 +423,49 @@
       }
     }
 
-    audio.addEventListener('play', updatePlayState);
-    audio.addEventListener('pause', updatePlayState);
-    audio.addEventListener('playing', updatePlayState);
-
-    // Autoplay attempt on load
-    function tryAutoplay() {
+    function playMusic() {
+      if (userPaused) return;
       audio.muted = false;
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
-          updatePlayState();
+          setVisualPlaying(true);
         }).catch(() => {
-          // If browser policy blocks unprompted autoplay, start seamlessly on first user interaction anywhere
-          const unlockAudio = () => {
-            audio.play().then(() => {
-              updatePlayState();
-            }).catch(() => { });
-            window.removeEventListener('pointerdown', unlockAudio);
-            window.removeEventListener('touchstart', unlockAudio);
-            window.removeEventListener('click', unlockAudio);
-            window.removeEventListener('keydown', unlockAudio);
-          };
-          window.addEventListener('pointerdown', unlockAudio, { once: true });
-          window.addEventListener('touchstart', unlockAudio, { once: true });
-          window.addEventListener('click', unlockAudio, { once: true });
-          window.addEventListener('keydown', unlockAudio, { once: true });
+          // If browser policy holds sound until first gesture, keep visual spinning ON
+          setVisualPlaying(true);
         });
       }
     }
 
-    tryAutoplay();
-    document.addEventListener('DOMContentLoaded', tryAutoplay);
+    // Start playback immediately
+    playMusic();
 
+    // Listen on first user interaction anywhere to ensure sound starts if browser blocked unprompted autoplay
+    const gestureEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll', 'click'];
+    function onFirstGesture() {
+      if (!userPaused && audio.paused) {
+        playMusic();
+      }
+      gestureEvents.forEach(evt => window.removeEventListener(evt, onFirstGesture, { capture: true }));
+    }
+    gestureEvents.forEach(evt => window.addEventListener(evt, onFirstGesture, { once: true, capture: true }));
+
+    // Toggle button click
     toggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (audio.paused) {
-        audio.play().catch(() => { });
-      } else {
+      if (!audio.paused) {
+        userPaused = true;
         audio.pause();
+        setVisualPlaying(false);
+      } else {
+        userPaused = false;
+        playMusic();
       }
+    });
+
+    audio.addEventListener('play', () => setVisualPlaying(true));
+    audio.addEventListener('pause', () => {
+      if (userPaused) setVisualPlaying(false);
     });
   </script>
 
