@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Countdown to Us</title>
+
+<!--
+  ============================================================
+  EDIT THESE 4 LINES ONLY — everything else can stay as-is.
+  Find the CONFIG block a little further down in this file.
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500;1,9..144,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#1a1410;
+    --paper:#faf6ef;
+    --paper-dim:rgba(250,246,239,0.72);
+    --chili:#c1440e;
+    --gold:#d4a24c;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    height:100%;
+    background:var(--ink);
+  }
+
+  body{
+    font-family:'Fraunces', Georgia, serif;
+    color:var(--paper);
+    min-height:100dvh;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* ---------- Background photo ---------- */
+  #bg{
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 22%),
+      linear-gradient(0deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.15) 46%, rgba(0,0,0,0.05) 65%),
+      url('your-photo.jpg'); /* <-- EDIT: path/URL to your photo (also set in CONFIG below) */
+    background-size:cover;
+    background-position:center;
+    /* fallback look if the photo file is missing */
+    background-color:#3a231c;
+    animation:kenburns 26s ease-in-out infinite alternate;
+  }
+
+  @keyframes kenburns{
+    from{ transform:scale(1); }
+    to{ transform:scale(1.07); }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    #bg{ animation:none; }
+  }
+
+  /* ---------- Layout ---------- */
+  .stage{
+    position:relative;
+    z-index:1;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:
+      max(20px, env(safe-area-inset-top))
+      max(20px, env(safe-area-inset-right))
+      max(28px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .content{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:6px;
+    padding-bottom:12px;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    font-weight:600;
+  }
+
+  .nickname{
+    font-style:italic;
+    font-weight:500;
+    color:var(--chili);
+    font-size:clamp(22px, 6vw, 30px);
+    margin-bottom:4px;
+    text-shadow:0 2px 18px rgba(0,0,0,0.35);
+  }
+
+  .count-number{
+    font-weight:900;
+    font-size:clamp(88px, 32vw, 168px);
+    line-height:0.9;
+    letter-spacing:-0.02em;
+    text-shadow:0 4px 30px rgba(0,0,0,0.45);
+  }
+
+  .count-label{
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin-top:2px;
+    margin-bottom:18px;
+  }
+
+  .together-message{
+    font-style:italic;
+    font-weight:600;
+    font-size:clamp(30px, 8vw, 44px);
+    line-height:1.15;
+    margin:8px 0 22px;
+    text-shadow:0 4px 30px rgba(0,0,0,0.45);
+  }
+
+  .divider{
+    width:44px;
+    height:1px;
+    background:rgba(250,246,239,0.35);
+    margin-bottom:18px;
+  }
+
+  .ticker{
+    display:flex;
+    gap:22px;
+  }
+
+  .ticker-unit{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+
+  .ticker-value{
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-weight:600;
+    font-size:clamp(18px, 5.4vw, 24px);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .ticker-tag{
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:9px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+  }
+
+  /* ---------- Vinyl mute toggle ---------- */
+  .audio-toggle{
+    position:absolute;
+    top:max(18px, env(safe-area-inset-top));
+    right:max(18px, env(safe-area-inset-right));
+    z-index:2;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:none;
+    background:rgba(20,14,10,0.38);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .audio-toggle svg{
+    width:26px;
+    height:26px;
+    animation:spin 3.2s linear infinite;
+    animation-play-state:paused;
+    opacity:0.55;
+    transition:opacity 0.25s ease;
+  }
+
+  .audio-toggle.playing svg{
+    animation-play-state:running;
+    opacity:1;
+  }
+
+  @keyframes spin{
+    from{ transform:rotate(0deg); }
+    to{ transform:rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .audio-toggle svg{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+
+<button class="audio-toggle" id="audioToggle" aria-label="Play music" aria-pressed="false">
+  <svg viewBox="0 0 48 48" fill="none">
+    <circle cx="24" cy="24" r="22" fill="#15100c"/>
+    <circle cx="24" cy="24" r="22" stroke="rgba(250,246,239,0.25)" stroke-width="1"/>
+    <circle cx="24" cy="24" r="17" stroke="rgba(250,246,239,0.18)" stroke-width="1"/>
+    <circle cx="24" cy="24" r="12" stroke="rgba(250,246,239,0.18)" stroke-width="1"/>
+    <circle cx="24" cy="24" r="8" fill="#d4a24c"/>
+    <circle cx="24" cy="24" r="2.2" fill="#15100c"/>
+  </svg>
+</button>
+
+<audio id="audioPlayer" loop playsinline>
+  <source src="song.mp3" type="audio/mpeg"> <!-- EDIT: path/URL to your song (also set in CONFIG below) -->
+</audio>
+
+<div class="stage">
+  <div class="content">
+    <div class="eyebrow">Days until I will see my</div>
+    <div class="nickname" id="nicknameEl">Spicy Kofte</div>
+
+    <div id="countdownArea">
+      <div class="count-number" id="daysNumber">--</div>
+      <div class="count-label">days</div>
+      <div class="divider"></div>
+      <div class="ticker">
+        <div class="ticker-unit">
+          <div class="ticker-value" id="hoursVal">00</div>
+          <div class="ticker-tag">Hrs</div>
+        </div>
+        <div class="ticker-unit">
+          <div class="ticker-value" id="minsVal">00</div>
+          <div class="ticker-tag">Min</div>
+        </div>
+        <div class="ticker-unit">
+          <div class="ticker-value" id="secsVal">00</div>
+          <div class="ticker-tag">Sec</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="together-message" id="togetherMessage" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+  /* ============================================================
+     CONFIG — edit these 4 values whenever you plan a new visit.
+     ============================================================ */
+  const CONFIG = {
+    TARGET_DATE: '2026-08-22T19:00:00',   // EDIT: next meet-up date & time (YYYY-MM-DDTHH:MM:SS), your local time
+    BACKGROUND_IMAGE: 'photo.jpg',        // EDIT: filename or URL of your photo
+    MUSIC_SRC: 'song.mp3',                // EDIT: filename or URL of your song
+    NICKNAME: 'Spicy Kofte'               // EDIT: her nickname
+  };
+  /* ============================================================ */
+
+  // Apply CONFIG
+  document.getElementById('bg').style.backgroundImage =
+    `linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 22%),
+     linear-gradient(0deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.15) 46%, rgba(0,0,0,0.05) 65%),
+     url('${CONFIG.BACKGROUND_IMAGE}')`;
+  const audioMimeTypes = { mp3:'audio/mpeg', mp4:'video/mp4', m4a:'audio/mp4', wav:'audio/wav', ogg:'audio/ogg' };
+  const audioExt = CONFIG.MUSIC_SRC.split('.').pop().toLowerCase();
+  const audioSourceEl = document.querySelector('#audioPlayer source');
+  audioSourceEl.src = CONFIG.MUSIC_SRC;
+  audioSourceEl.type = audioMimeTypes[audioExt] || '';
+  document.getElementById('audioPlayer').load();
+  document.getElementById('nicknameEl').textContent = CONFIG.NICKNAME;
+
+  // Countdown
+  const daysNumber = document.getElementById('daysNumber');
+  const hoursVal = document.getElementById('hoursVal');
+  const minsVal = document.getElementById('minsVal');
+  const secsVal = document.getElementById('secsVal');
+  const countdownArea = document.getElementById('countdownArea');
+  const togetherMessage = document.getElementById('togetherMessage');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const target = new Date(CONFIG.TARGET_DATE).getTime();
+    const now = Date.now();
+    const diff = target - now;
+
+    if (diff <= 0){
+      countdownArea.style.display = 'none';
+      togetherMessage.style.display = 'block';
+      togetherMessage.textContent = `With my ${CONFIG.NICKNAME} today`;
+      return;
+    }
+
+    countdownArea.style.display = '';
+    togetherMessage.style.display = 'none';
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    daysNumber.textContent = days;
+    hoursVal.textContent = pad(hours);
+    minsVal.textContent = pad(mins);
+    secsVal.textContent = pad(secs);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+
+  // Vinyl mute/play toggle (Instagram-style: starts muted, tap to unmute)
+  const audio = document.getElementById('audioPlayer');
+  const toggleBtn = document.getElementById('audioToggle');
+  let playing = false;
+
+  toggleBtn.addEventListener('click', () => {
+    if (!playing){
+      audio.muted = false;
+      audio.play().catch(() => {});
+      playing = true;
+      toggleBtn.classList.add('playing');
+      toggleBtn.setAttribute('aria-pressed', 'true');
+      toggleBtn.setAttribute('aria-label', 'Mute music');
+    } else {
+      audio.muted = true;
+      playing = false;
+      toggleBtn.classList.remove('playing');
+      toggleBtn.setAttribute('aria-pressed', 'false');
+      toggleBtn.setAttribute('aria-label', 'Play music');
+    }
+  });
+</script>
+
+</body>
+</html>
