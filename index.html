@@ -321,7 +321,7 @@
 
   <div id="bg"></div>
 
-  <button class="audio-toggle playing" id="audioToggle" aria-label="Pause music" aria-pressed="true">
+  <button class="audio-toggle" id="audioToggle" aria-label="Play music" aria-pressed="false">
     <div class="vinyl-disc">
       <div class="vinyl-groove groove-1"></div>
       <div class="vinyl-groove groove-2"></div>
@@ -423,7 +423,7 @@
     tick();
     setInterval(tick, 1000);
 
-    // Vinyl play/pause toggle — default: ON (spinning & playing from start)
+    // Vinyl play/pause toggle — strictly synchronized with real audio state
     const toggleBtn = document.getElementById('audioToggle');
     let userPaused = false;
 
@@ -439,32 +439,41 @@
       }
     }
 
-    function playMusic() {
+    audio.addEventListener('play', () => setVisualPlaying(true));
+    audio.addEventListener('playing', () => setVisualPlaying(true));
+    audio.addEventListener('pause', () => setVisualPlaying(false));
+    audio.addEventListener('ended', () => setVisualPlaying(false));
+
+    function attemptPlay() {
       if (userPaused) return;
       audio.muted = false;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          setVisualPlaying(true);
-        }).catch(() => {
-          // If browser policy holds sound until first gesture, keep visual spinning ON
-          setVisualPlaying(true);
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          // Autoplay blocked by browser policy until first user interaction.
         });
       }
     }
 
-    // Start playback immediately
-    playMusic();
+    // Try starting music on load
+    attemptPlay();
 
-    // Listen on first user interaction anywhere to ensure sound starts if browser blocked unprompted autoplay
-    const gestureEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll', 'click'];
-    function onFirstGesture() {
+    // Universal gesture unlock: tap/touch anywhere on the page starts music immediately
+    const unlockEvents = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown'];
+    function unlockAudioOnGesture() {
       if (!userPaused && audio.paused) {
-        playMusic();
+        audio.play().catch(() => { });
       }
-      gestureEvents.forEach(evt => window.removeEventListener(evt, onFirstGesture, { capture: true }));
+      unlockEvents.forEach(evt => {
+        document.removeEventListener(evt, unlockAudioOnGesture, true);
+        window.removeEventListener(evt, unlockAudioOnGesture, true);
+      });
     }
-    gestureEvents.forEach(evt => window.addEventListener(evt, onFirstGesture, { once: true, capture: true }));
+
+    unlockEvents.forEach(evt => {
+      document.addEventListener(evt, unlockAudioOnGesture, { capture: true, once: true });
+      window.addEventListener(evt, unlockAudioOnGesture, { capture: true, once: true });
+    });
 
     // Toggle button click
     toggleBtn.addEventListener('click', (e) => {
@@ -472,16 +481,10 @@
       if (!audio.paused) {
         userPaused = true;
         audio.pause();
-        setVisualPlaying(false);
       } else {
         userPaused = false;
-        playMusic();
+        audio.play().catch(() => { });
       }
-    });
-
-    audio.addEventListener('play', () => setVisualPlaying(true));
-    audio.addEventListener('pause', () => {
-      if (userPaused) setVisualPlaying(false);
     });
   </script>
 
