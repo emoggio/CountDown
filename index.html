@@ -309,6 +309,60 @@
       }
     }
 
+    /* ---------- Music Suggestion Prompt ---------- */
+    .music-prompt {
+      position: absolute;
+      top: max(20px, env(safe-area-inset-top));
+      right: max(74px, calc(env(safe-area-inset-right) + 56px));
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      border-radius: 20px;
+      background: rgba(20, 14, 10, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(250, 246, 239, 0.16);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--paper);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.25s ease;
+      animation: promptPulse 3s ease-in-out infinite;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .music-prompt:hover {
+      border-color: rgba(212, 162, 76, 0.5);
+      transform: scale(1.03);
+    }
+
+    .music-prompt .prompt-icon {
+      color: var(--gold);
+      font-size: 12px;
+    }
+
+    .music-prompt.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(8px) scale(0.95);
+    }
+
+    @keyframes promptPulse {
+      0%, 100% {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(212, 162, 76, 0);
+      }
+      50% {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 10px 2px rgba(212, 162, 76, 0.25);
+        border-color: rgba(212, 162, 76, 0.35);
+      }
+    }
+
     @media (prefers-reduced-motion:reduce) {
       .vinyl-disc {
         animation: none;
@@ -321,6 +375,11 @@
 
   <div id="bg"></div>
 
+  <div id="musicPrompt" class="music-prompt" title="Play background music">
+    <span class="prompt-icon">♪</span>
+    <span class="prompt-text">tap to play</span>
+  </div>
+
   <button class="audio-toggle" id="audioToggle" aria-label="Play music" aria-pressed="false">
     <div class="vinyl-disc">
       <div class="vinyl-groove groove-1"></div>
@@ -332,7 +391,7 @@
     </div>
   </button>
 
-  <audio id="audioPlayer" src="song.mp3" autoplay loop playsinline preload="auto"></audio>
+  <audio id="audioPlayer" src="song.mp3" loop playsinline preload="auto"></audio>
 
   <div class="stage">
     <div class="content">
@@ -381,7 +440,9 @@
      url('${CONFIG.BACKGROUND_IMAGE}')`;
 
     const audio = document.getElementById('audioPlayer');
-    audio.src = CONFIG.MUSIC_SRC;
+    if (audio.getAttribute('src') !== CONFIG.MUSIC_SRC) {
+      audio.src = CONFIG.MUSIC_SRC;
+    }
     document.getElementById('nicknameEl').textContent = CONFIG.NICKNAME;
 
     // Countdown
@@ -423,15 +484,16 @@
     tick();
     setInterval(tick, 1000);
 
-    // Vinyl play/pause toggle — strictly synchronized with real audio state
+    // Vinyl play/pause toggle & suggestion prompt
     const toggleBtn = document.getElementById('audioToggle');
-    let userPaused = false;
+    const promptEl = document.getElementById('musicPrompt');
 
     function setVisualPlaying(isPlaying) {
       if (isPlaying) {
         toggleBtn.classList.add('playing');
         toggleBtn.setAttribute('aria-pressed', 'true');
         toggleBtn.setAttribute('aria-label', 'Pause music');
+        if (promptEl) promptEl.classList.add('hidden');
       } else {
         toggleBtn.classList.remove('playing');
         toggleBtn.setAttribute('aria-pressed', 'false');
@@ -444,48 +506,25 @@
     audio.addEventListener('pause', () => setVisualPlaying(false));
     audio.addEventListener('ended', () => setVisualPlaying(false));
 
-    function attemptPlay() {
-      if (userPaused) return;
-      audio.muted = false;
-      const p = audio.play();
-      if (p !== undefined) {
-        p.catch(() => {
-          // Autoplay blocked by browser policy until first user interaction.
-        });
-      }
-    }
-
-    // Try starting music on load
-    attemptPlay();
-
-    // Universal gesture unlock: tap/touch anywhere on the page starts music immediately
-    const unlockEvents = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown'];
-    function unlockAudioOnGesture() {
-      if (!userPaused && audio.paused) {
+    function toggleMusic() {
+      if (audio.paused) {
         audio.play().catch(() => { });
+      } else {
+        audio.pause();
       }
-      unlockEvents.forEach(evt => {
-        document.removeEventListener(evt, unlockAudioOnGesture, true);
-        window.removeEventListener(evt, unlockAudioOnGesture, true);
-      });
     }
 
-    unlockEvents.forEach(evt => {
-      document.addEventListener(evt, unlockAudioOnGesture, { capture: true, once: true });
-      window.addEventListener(evt, unlockAudioOnGesture, { capture: true, once: true });
-    });
-
-    // Toggle button click
     toggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!audio.paused) {
-        userPaused = true;
-        audio.pause();
-      } else {
-        userPaused = false;
-        audio.play().catch(() => { });
-      }
+      toggleMusic();
     });
+
+    if (promptEl) {
+      promptEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMusic();
+      });
+    }
   </script>
 
 </body>
